@@ -1,0 +1,540 @@
+<1-1번>
+import time
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Slow Version : O(n^2)
+def Slow_prefixAverages(X, n):
+    Array1 = np.zeros(n)
+    for i in range(n):
+        sum = 0
+        for j in range(i + 1):
+            sum += X[j]
+        Array1[i] = sum / (i + 1)
+    return Array1
+
+# Optimized Version : O(n)
+def Optimized_prefixAverages(X, n):
+    Array2 = np.zeros(n)
+    sum = 0
+    for i in range(n):
+        sum += X[i]
+        Array2[i] = sum / (i + 1)
+    return Array2
+
+np.random.seed(10)
+
+# (a)
+n = 2**6
+Ratios = []
+
+for i in range(1000):
+    # 0,1 사이의 uniform distribution에서 길이 n인 난수 배열 X 생성
+    X = np.random.uniform(0, 1, n)
+    
+    # time.perf_counter() : 시간 측정
+    start_Slow = time.perf_counter()
+    Slow_prefixAverages(X, n)
+    end_Slow = time.perf_counter()
+    
+    start_Optimized = time.perf_counter()
+    Optimized_prefixAverages(X, n)
+    end_Optimized = time.perf_counter()
+    
+    time_Slow = end_Slow - start_Slow
+    time_Optimized = end_Optimized - start_Optimized
+    
+    if time_Optimized > 0:
+        ratio = time_Slow / time_Optimized 
+    else :
+        ratio = 0
+    
+    Ratios.append(ratio)
+
+plt.figure()
+plt.hist(Ratios, bins=30, edgecolor='black', color='skyblue')
+plt.title("Time Ratios (Slow/Optimized, n=64) Histogram")
+plt.xlabel("Time Ratios (Slow/Optimized)")
+plt.ylabel("Frequency")
+plt.savefig('./ratio hist.jpg')
+plt.grid(True)
+plt.close()
+
+# (b)
+Number_Size=[]
+for i in range(4,9):
+    Number_Size.append(2**i)
+
+Min_Ratios = []
+Max_Ratios = []
+Average_Ratios = []
+
+np.random.seed(10)
+
+for n in Number_Size:
+    Ratio_List = []
+    for i in range(1000):
+        X = np.random.uniform(0, 1, n)
+        
+        start_Slow = time.perf_counter()
+        Slow_prefixAverages(X, n)
+        end_Slow = time.perf_counter()
+        
+        start_Optimized = time.perf_counter()
+        Optimized_prefixAverages(X, n)
+        end_Optimized = time.perf_counter()
+        
+        time_Slow = end_Slow - start_Slow
+        time_Optimized = end_Optimized - start_Optimized
+
+        if time_Optimized > 0:
+            ratio = time_Slow / time_Optimized 
+        else :
+            ratio = 0
+
+        Ratio_List.append(ratio)
+    
+    Min_Ratios.append(np.min(Ratio_List))
+    Max_Ratios.append(np.max(Ratio_List))
+    Average_Ratios.append(np.mean(Ratio_List))
+
+
+plt.figure()
+plt.plot(Number_Size, Min_Ratios, label='Minimum Ratio', marker='o')
+plt.plot(Number_Size, Max_Ratios, label='Maximum Ratio', marker='o')
+plt.plot(Number_Size, Average_Ratios, label='Average Ratio', marker='o')
+plt.title('Time Ratios (Slow/Optimized) Graph of Different Number_Size')
+plt.xlabel('Number_Size')
+plt.ylabel('Time Ratios (Slow / Optimized)')
+plt.legend()
+plt.grid(True)
+plt.savefig('./ratio plot.jpg')
+plt.close()
+
+
+
+
+<1-2번>
+import time
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 느린 버전, X=array, n은 array원소수, k는 전 k번째부터의 평균 (O(nk))
+def movingAverages1(X, n, k):
+    Array=np.zeros(n)
+    # k-1부터인 이유는 그 전에는 movingaverage가 정의가 안 되기 때문이다.
+    for i in range(k-1,n):
+        sum=0
+        for j in range(i-k+1,i+1):
+            sum += X[j]
+        Array[i]=sum/k
+    return Array
+
+# (O(n))
+def movingAverages2(X, n, k):
+    Array = np.zeros(n)
+    # sum_k는 k번재 원소까지의 합이다.
+    sum_k = sum(X[:k])
+    Array[k - 1] = sum_k / k
+
+    # 앞서서 k-1번째 원소는 확정이었다. 그 다음 원소부터는 i번째 원소를 더하고 i-k번째 원소(제일 앞선것)을 뺀다.
+    for i in range(k, n):
+        sum_k += X[i] - X[i - k]
+        Array[i] = sum_k / k
+
+    return Array
+
+np.random.seed(10)
+
+# (a)
+n=2**5
+k=2**4
+Ratios=[]
+
+for i in range(1000):
+    X=np.random.uniform(0,1,n)
+
+    start_slow = time.perf_counter()
+    movingAverages1(X,n,k)
+    end_slow=time.perf_counter()
+
+    start_optimized = time.perf_counter()
+    movingAverages2(X,n,k)
+    end_optimized = time.perf_counter()
+
+    time_slow = end_slow - start_slow
+    time_optimized = end_optimized - start_optimized
+
+    if time_optimized>0:
+        ratio = time_slow / time_optimized
+    else:
+        ratio=0
+    
+    Ratios.append(ratio)
+
+plt.figure()
+plt.hist(Ratios,bins=20,edgecolor='black',color='skyblue')
+plt.title("Time Ratios (n=2**5, k=2**4) movingAverages Histogram")
+plt.xlabel("Time Ratios (Slow / Optimized)")
+plt.ylabel("Frequency")
+plt.grid(True)
+plt.savefig('./ratio hist2.jpg')
+plt.close()
+
+# (b)
+np.random.seed(10)
+
+number_size=[]
+for i in range(4,9):
+    number_size.append(2**i)
+
+k=2**3
+Max_ratios=[]
+Min_ratios=[]
+Average_ratios=[]
+
+for n in number_size:
+    Ratio_List=[]
+    for i in range(1000):
+        X=np.random.uniform(0,1,n)
+
+        start_slow = time.perf_counter()
+        movingAverages1(X,n,k)
+        end_slow=time.perf_counter()
+
+        start_optimized = time.perf_counter()
+        movingAverages2(X,n,k)
+        end_optimized = time.perf_counter()
+
+        time_slow = end_slow - start_slow
+        time_optimized = end_optimized - start_optimized
+
+        if time_optimized>0:
+            ratio = time_slow / time_optimized
+        else:
+            ratio=0
+        
+        Ratio_List.append(ratio)
+
+    Max_ratios.append(np.max(Ratio_List))
+    Min_ratios.append(np.min(Ratio_List))
+    Average_ratios.append(np.mean(Ratio_List))
+
+plt.figure()
+plt.plot(number_size,Max_ratios,marker='o',label='Maximum Ratios')
+plt.plot(number_size,Min_ratios,marker='o',label='Minimum Ratios')
+plt.plot(number_size,Average_ratios,marker='o',label='Average Ratios')
+plt.title("Time Ratios(Slow/Optimized) movingAverages Graph of Different number_Size")
+plt.xlabel('number_Size')
+plt.ylabel('Time Ratios (Slow / Optimized)')
+plt.legend()
+plt.grid(True)
+plt.savefig('./ratio plot2.jpg')
+plt.close()
+
+
+
+
+
+<1-3번>
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+
+# O(n) time and O(1) space algorithm to find the missing number
+def findMissing(A, n):
+    total = n * (n - 1) // 2
+    return total - sum(A)
+
+# (a)
+Times_64 = []
+Times_128 = []
+
+for i in range(1000):
+    # n=64
+    np.random.seed(10)
+    n = 2**6
+    List_64 = list(range(n))
+
+    Missing_Value_64 = np.random.randint(0, n)
+    A = List_64[:Missing_Value_64] + List_64[Missing_Value_64+1:]
+
+    start_64 = time.perf_counter()
+    findMissing(A, n)
+    end_64 = time.perf_counter()
+    Times_64.append(end_64 - start_64)
+
+    # n=128
+    np.random.seed(10)
+    n = 2**7
+    List_128 = list(range(n))
+
+    Missing_Value_128 = np.random.randint(0, n)
+    A = List_128[:Missing_Value_128] + List_128[Missing_Value_128+1:]
+
+    start_128 = time.perf_counter()
+    findMissing(A, n)
+    end_128 = time.perf_counter()
+    Times_128.append(end_128 - start_128)
+
+Ratios = np.array(Times_128) / np.array(Times_64)
+
+plt.figure()
+plt.hist(Ratios, bins=30,  edgecolor='black', color='skyblue')
+plt.title("Time Ratios (n=128/n=64) findMissing Histogram")
+plt.xlabel("Time Ratios (n=128/n=64)")
+plt.ylabel("Frequency")
+plt.grid(True)
+plt.savefig("./ratio hist3.jpg")
+plt.close()
+
+# (b)
+Max_ratios=[]
+Min_ratios=[]
+Average_ratios=[]
+
+n_values = []
+for i in range(3,9):
+    n_values.append(2**i)
+
+
+for n in n_values:
+    Ratio_List_n = []
+    for i in range(1000):
+        np.random.seed(10)
+
+        List_8 = list(range(8))
+
+        Missing_Value_8 = np.random.randint(0, 8)
+        A = List_8[:Missing_Value_8] + List_8[Missing_Value_8+1:]
+
+        start_8 = time.perf_counter()
+        findMissing(A, 8)
+        end_8 = time.perf_counter()
+        
+        
+        List_n = list(range(n))
+        Missing_Value_n = np.random.randint(0, n)
+        A = List_n[:Missing_Value_n] + List_n[Missing_Value_n+1:]
+
+        start_n = time.perf_counter()
+        findMissing(A, n)
+        end_n = time.perf_counter()
+        
+        time_8 = end_8 - start_8
+        time_n = end_n - start_n
+
+        if (time_8)>0:
+            ratio = time_8 / time_n
+        else:
+            ratio = 0
+        
+        
+        Ratio_List_n.append(ratio)
+    
+    Max_ratios.append(np.max(Ratio_List_n))
+    Min_ratios.append(np.min(Ratio_List_n))
+    Average_ratios.append(np.mean(Ratio_List_n))   
+
+
+# Plot min, max, avg ratios
+plt.figure()
+plt.plot(n_values, Max_ratios, label='Max Ratios')
+plt.plot(n_values, Min_ratios, label='Min Ratios')
+plt.plot(n_values, Average_ratios, label='Average Ratios')
+plt.xlabel("Number Size")
+plt.ylabel("Execution Time Ratio to n=8")
+plt.title("Time Ratios findMissing Graph of Different number_Size")
+plt.legend()
+plt.savefig("./ratioplot3.jpg")
+plt.close()
+
+
+
+<1-4번>
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+
+def Generate_Matrix(n):
+    matrix = []
+    limit_one = n
+    for i in range(n):
+        np.random.seed(10)
+        number_one = np.random.randint(0, limit_one + 1)
+        row = [1] * number_one + [0] * (n - number_one)
+        matrix.append(row)
+        limit_one = number_one
+    return matrix
+
+# O(n^2)
+def countOnesButSlow(A, n):
+    count = 0
+    for i in range(n):
+        j = 0
+        while j < n and A[i][j] == 1:
+            count += 1
+            j += 1
+    return count
+
+# O(n)
+def countOnes(A, n):
+    count = 0
+    i = 0
+    j = n - 1
+    while i < n and j >= 0:
+        if A[i][j] == 1:
+            count += (j + 1)
+            i += 1
+        else:
+            j -= 1
+    return count
+
+# (a)
+n = 2**6
+Ratios = []
+
+for i in range(1000):
+    Matrix = Generate_Matrix(n)
+    
+    start_Slow = time.perf_counter()
+    countOnesButSlow(Matrix, n)
+    end_Slow = time.perf_counter()
+    
+    start_Original = time.perf_counter()
+    countOnes(Matrix, n)
+    end_Original = time.perf_counter()
+    
+    time_Slow = end_Slow - start_Slow
+    time_Original = end_Original - start_Original
+    
+    if time_Original > 0:
+        ratio = time_Slow / time_Original
+    else :
+        ratio = 0
+    
+    Ratios.append(ratio)
+
+plt.figure()
+plt.hist(Ratios, bins=30, edgecolor='black', color='green')
+plt.title("Time Ratios (Slow/Original,n=64) countOnes Histogram")
+plt.xlabel("Time Ratios (Slow/Original)")
+plt.ylabel("Frequency")
+plt.savefig('./ratio_hist4.jpg')
+plt.grid(True)
+plt.close()
+
+# (b)
+Number_Size=[]
+for i in range(4,9):
+    Number_Size.append(2**i)
+
+Min_Ratios = []
+Max_Ratios = []
+Average_Ratios = []
+
+for n in Number_Size:
+    Ratio_List = []
+    for i in range(1000):
+        Matrix = Generate_Matrix(n)
+    
+        start_Slow = time.perf_counter()
+        countOnesButSlow(Matrix, n)
+        end_Slow = time.perf_counter()
+    
+        start_Original = time.perf_counter()
+        countOnes(Matrix, n)
+        end_Original = time.perf_counter()
+    
+        time_Slow = end_Slow - start_Slow
+        time_Original = end_Original - start_Original
+    
+        if time_Original > 0:
+            ratio = time_Slow / time_Original
+        else :
+            ratio = 0
+
+        Ratio_List.append(ratio)
+    
+    Min_Ratios.append(np.min(Ratio_List))
+    Max_Ratios.append(np.max(Ratio_List))
+    Average_Ratios.append(np.mean(Ratio_List))
+
+
+plt.figure()
+plt.plot(Number_Size, Min_Ratios, label='Minimum Ratio', marker='o')
+plt.plot(Number_Size, Max_Ratios, label='Maximum Ratio', marker='o')
+plt.plot(Number_Size, Average_Ratios, label='Average Ratio', marker='o')
+plt.title('Time Ratios countOnes Graph of Different Number_Size')
+plt.xlabel('Number_Size')
+plt.ylabel('Time Ratios (Slow / Original)')
+plt.legend()
+plt.grid(True)
+plt.savefig('./ratio_plot4.jpg')
+plt.close()
+
+
+
+2-1번
+# 2-1
+def gcd1(a, b):
+    print(f"computing gcd1({a}, {b})")
+    if b == 0:
+        print("Recursion is End")
+        return a
+    elif a > b: 
+        return gcd1(b, a % b)
+    else:
+        return gcd1(a, b % a)
+
+def gcd2(a, b):
+    print(f"computing gcd2({a}, {b})")
+    if a == b:
+        print("Recursion is End")
+        return a
+    elif a > b:
+        return gcd2(a - b, b)
+    else:
+        return gcd2(a, b - a)
+
+# (a) a=493, b=33
+print("gcd1 방법으로 493,33의 최대공약수 구하기")
+result1 = gcd1(493, 33)
+print(f"gcd1(493, 33) is {result1}.\n")
+
+print("gcd2 방법으로 493,33의 최대공약수 구하기")
+result2 = gcd2(493, 33)
+print(f"gcd2(493, 33) is {result2}.\n")
+
+# (b) a=225, b=13
+print("gcd1 방법으로 225,13의 최대공약수 구하기")
+result1 = gcd1(225, 13)
+print(f"gcd1(225, 13) is {result1}.\n")
+
+print("gcd2 방법으로 225,13의 최대공약수 구하기")
+result2 = gcd2(225, 13)
+print(f"gcd2(225, 13) is {result2}.\n")
+
+
+def divide(a, b):
+    print(f"computing divide({a},{b})")
+    if a < b:
+        return (0, a)
+    else:
+        q, r = divide(a - b, b)
+        print(f"Returning ({q + 1}, {r})")
+        return (q + 1, r)
+
+# -----------------------
+# (a) a=413, b=31
+print("=== (a) divide(413, 31) ===")
+q1, r1 = divide(413, 31)
+print(f"Result: quotient = {q1}, remainder = {r1}\n")
+
+# -----------------------
+# (b) a=1325, b=113
+print("=== (b) divide(1325, 113) ===")
+q2, r2 = divide(1325, 113)
+print(f"Result: quotient = {q2}, remainder = {r2}")
+
+
